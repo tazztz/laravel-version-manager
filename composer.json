@@ -2,6 +2,7 @@
     "name": "laravel-version-manager/tazz",
     "description": "It's Laravel Package used for version control.",
     "type": "library",
+    "version": "1.0.0",
     "license": "MIT",
     "autoload": {
         "psr-4": {
@@ -34,6 +35,6 @@
             }
         }
     },
-    "minimum-stability": "beta",
+    "minimum-stability": "stable",
     "prefer-stable": true
 }
