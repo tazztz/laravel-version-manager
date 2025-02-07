@@ -5,3 +5,4 @@ A Laravel package that helps you manage your project's version numbers using sem
 ## Installation
 
 You can install the package via composer:
+## composer require laravel-version-manager/tazz
