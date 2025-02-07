@@ -3,7 +3,7 @@
         'name' => 'laravel-version-manager/tazz',
         'pretty_version' => 'dev-main',
         'version' => 'dev-main',
-        'reference' => 'c42e2ac6ad933f87272cc963d9858b7fda16fdad',
+        'reference' => 'bb324a381beb265fd2e9dee74fc601635820e8e9',
         'type' => 'library',
         'install_path' => __DIR__ . '/../../',
         'aliases' => array(
@@ -390,7 +390,7 @@
         'laravel-version-manager/tazz' => array(
             'pretty_version' => 'dev-main',
             'version' => 'dev-main',
-            'reference' => 'c42e2ac6ad933f87272cc963d9858b7fda16fdad',
+            'reference' => 'bb324a381beb265fd2e9dee74fc601635820e8e9',
             'type' => 'library',
             'install_path' => __DIR__ . '/../../',
             'aliases' => array(
@@ -821,8 +821,8 @@
         'psr/log-implementation' => array(
             'dev_requirement' => false,
             'provided' => array(
-                0 => '3.0.0',
-                1 => '1.0|2.0|3.0',
+                0 => '1.0|2.0|3.0',
+                1 => '3.0.0',
             ),
         ),
         'psr/simple-cache' => array(
