@@ -24,10 +24,10 @@ class EnsureDirectoryExists extends Action
      * @param  bool  $confirmation
      */
     public function __construct(
-        public Filesystem $filesystem,
-        public ?ComponentsFactory $components = null,
+        public readonly Filesystem $filesystem,
+        public readonly ?ComponentsFactory $components = null,
         public ?string $workingPath = null,
-        public bool $confirmation = false
+        public readonly bool $confirmation = false
     ) {}
 
     /**

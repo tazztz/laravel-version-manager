@@ -8,16 +8,12 @@ use Illuminate\Foundation\Application as LaravelApplication;
 use Laravel\SerializableClosure\SerializableClosure;
 use Orchestra\Testbench\Attributes\DefineRoute;
 use Orchestra\Testbench\Features\TestingFeature;
-use Orchestra\Testbench\Foundation\Application;
 use Orchestra\Testbench\Foundation\Bootstrap\SyncTestbenchCachedRoutes;
 
 use function Orchestra\Testbench\join_paths;
 use function Orchestra\Testbench\refresh_router_lookups;
 use function Orchestra\Testbench\remote;
 
-/**
- * @internal
- */
 trait HandlesRoutes
 {
     /**
@@ -29,6 +25,8 @@ trait HandlesRoutes
 
     /**
      * Setup routes requirements.
+     *
+     * @internal
      *
      * @param  \Illuminate\Foundation\Application  $app
      */
@@ -67,6 +65,8 @@ trait HandlesRoutes
     /**
      * Define routes setup.
      *
+     * @api
+     *
      * @param  \Illuminate\Routing\Router  $router
      * @return void
      */
@@ -77,6 +77,8 @@ trait HandlesRoutes
 
     /**
      * Define web routes setup.
+     *
+     * @api
      *
      * @param  \Illuminate\Routing\Router  $router
      * @return void
@@ -89,6 +91,8 @@ trait HandlesRoutes
     /**
      * Define stash routes setup.
      *
+     * @api
+     *
      * @param  \Closure|string  $route
      * @return void
      */
@@ -99,6 +103,8 @@ trait HandlesRoutes
 
     /**
      * Define cache routes setup.
+     *
+     * @api
      *
      * @param  \Closure|string  $route
      * @param  bool  $cached
@@ -120,7 +126,7 @@ trait HandlesRoutes
             /** @var string $serializeRoute */
             $serializeRoute = serialize(SerializableClosure::unsigned($route));
             $stub = $files->get(join_paths(__DIR__, 'stubs', 'routes.stub'));
-            $route = str_replace('{{routes}}', (string) json_encode($serializeRoute), $stub);
+            $route = str_replace('{{routes}}', var_export($serializeRoute, true), $stub);
         }
 
         $files->put(
@@ -142,6 +148,11 @@ trait HandlesRoutes
 
     /**
      * Require application cached routes.
+     *
+     * @internal
+     *
+     * @param  \Illuminate\Filesystem\Filesystem  $files
+     * @return void
      */
     protected function requireApplicationCachedRoutes(Filesystem $files, bool $cached): void
     {

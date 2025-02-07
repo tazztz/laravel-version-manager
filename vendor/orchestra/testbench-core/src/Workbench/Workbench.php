@@ -6,14 +6,18 @@ use Illuminate\Console\Application as Artisan;
 use Illuminate\Console\Command;
 use Illuminate\Contracts\Foundation\Application as ApplicationContract;
 use Illuminate\Database\Eloquent\Factories\Factory;
+use Illuminate\Foundation\Events\DiagnosingHealth;
 use Illuminate\Routing\Router;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Event;
+use Illuminate\Support\Facades\View;
 use Illuminate\Support\Str;
 use Orchestra\Testbench\Contracts\Config as ConfigContract;
 use Orchestra\Testbench\Foundation\Config;
 use Orchestra\Testbench\Foundation\Env;
 use ReflectionClass;
 use Symfony\Component\Finder\Finder;
+use Throwable;
 
 use function Orchestra\Testbench\after_resolving;
 use function Orchestra\Testbench\join_paths;
@@ -32,7 +36,7 @@ class Workbench
      *
      * @var \Orchestra\Testbench\Contracts\Config|null
      */
-    protected static $cachedConfiguration;
+    protected static ?ConfigContract $cachedConfiguration = null;
 
     /**
      * Cached namespace by path.
@@ -46,14 +50,14 @@ class Workbench
      *
      * @var class-string<\Illuminate\Foundation\Auth\User>|false|null
      */
-    protected static $cachedUserModel = null;
+    protected static string|false|null $cachedUserModel = null;
 
     /**
      * The cached core workbench bindings.
      *
      * @var array{kernel: array{console?: string|null, http?: string|null}, handler: array{exception?: string|null}}
      */
-    public static $cachedCoreBindings = [
+    public static array $cachedCoreBindings = [
         'kernel' => [],
         'handler' => [],
     ];
@@ -61,10 +65,14 @@ class Workbench
     /**
      * Start Workbench.
      *
+     * @internal
+     *
      * @param  \Illuminate\Contracts\Foundation\Application  $app
      * @param  \Orchestra\Testbench\Contracts\Config  $config
      * @param  array<int, string|class-string<\Illuminate\Support\ServiceProvider>>  $providers
      * @return void
+     *
+     * @codeCoverageIgnore
      */
     public static function start(ApplicationContract $app, ConfigContract $config, array $providers = []): void
     {
@@ -80,9 +88,13 @@ class Workbench
     /**
      * Start Workbench with providers.
      *
+     * @internal
+     *
      * @param  \Illuminate\Contracts\Foundation\Application  $app
      * @param  \Orchestra\Testbench\Contracts\Config  $config
      * @return void
+     *
+     * @codeCoverageIgnore
      */
     public static function startWithProviders(ApplicationContract $app, ConfigContract $config): void
     {
@@ -106,13 +118,45 @@ class Workbench
         /** @var TWorkbenchDiscoversConfig $discoversConfig */
         $discoversConfig = $config->getWorkbenchDiscoversAttributes();
 
-        $app->booted(static function ($app) use ($discoversConfig) {
-            tap($app->make('router'), static function (Router $router) use ($discoversConfig) {
-                foreach (['web', 'api'] as $group) {
-                    if (($discoversConfig[$group] ?? false) === true) {
-                        if (is_file($route = workbench_path('routes', "{$group}.php"))) {
-                            $router->middleware($group)->group($route);
+        $healthCheckEnabled = $config->getWorkbenchAttributes()['health'] ?? false;
+
+        $app->booted(static function ($app) use ($discoversConfig, $healthCheckEnabled) {
+            tap($app->make('router'), static function (Router $router) use ($discoversConfig, $healthCheckEnabled) {
+                if (($discoversConfig['api'] ?? false) === true) {
+                    if (is_file($route = workbench_path('routes', 'api.php'))) {
+                        $router->middleware('api')->group($route);
+                    }
+                }
+
+                if ($healthCheckEnabled === true) {
+                    $router->get('/up', static function () {
+                        $exception = null;
+
+                        try {
+                            Event::dispatch(new DiagnosingHealth);
+                        } catch (Throwable $error) {
+                            if (app()->hasDebugModeEnabled()) {
+                                throw $error;
+                            }
+
+                            report($error);
+
+                            $exception = $error->getMessage();
                         }
+
+                        return response(
+                            View::file(
+                                package_path('vendor', 'laravel', 'framework', 'src', 'Illuminate', 'Foundation', 'resources', 'health-up.blade.php'),
+                                ['exception' => $exception],
+                            ),
+                            status: $exception ? 500 : 200,
+                        );
+                    });
+                }
+
+                if (($discoversConfig['web'] ?? false) === true) {
+                    if (is_file($route = workbench_path('routes', 'web.php'))) {
+                        $router->middleware('web')->group($route);
                     }
                 }
             });

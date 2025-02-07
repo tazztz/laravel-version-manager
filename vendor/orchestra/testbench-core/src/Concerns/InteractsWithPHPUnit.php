@@ -6,11 +6,8 @@ use Closure;
 use Illuminate\Support\Collection;
 use Orchestra\Testbench\PHPUnit\AttributeParser;
 use PHPUnit\Framework\TestCase as PHPUnitTestCase;
-use PHPUnit\Metadata\Annotation\Parser\Registry as PHPUnit10Registry;
-use PHPUnit\Util\Annotation\Registry as PHPUnit9Registry;
+use PHPUnit\Metadata\Annotation\Parser\Registry as PHPUnitRegistry;
 use ReflectionClass;
-
-use function Orchestra\Testbench\phpunit_version_compare;
 
 /**
  * @internal
@@ -26,14 +23,14 @@ trait InteractsWithPHPUnit
      *
      * @var (\Closure(\Closure):(void))|null
      */
-    protected $testCaseSetUpCallback;
+    protected ?Closure $testCaseSetUpCallback = null;
 
     /**
      * The cached test case tearDown resolver.
      *
      * @var (\Closure(\Closure):(void))|null
      */
-    protected $testCaseTearDownCallback;
+    protected ?Closure $testCaseTearDownCallback = null;
 
     /**
      * The cached class attributes for test case.
@@ -42,7 +39,7 @@ trait InteractsWithPHPUnit
      *
      * @phpstan-var array<string, array<int, array{key: class-string<TTestingFeature>, instance: TTestingFeature}>>
      */
-    protected static $cachedTestCaseClassAttributes = [];
+    protected static array $cachedTestCaseClassAttributes = [];
 
     /**
      * The cached method attributes for test case.
@@ -51,10 +48,12 @@ trait InteractsWithPHPUnit
      *
      * @phpstan-var array<string, array<int, array{key: class-string<TTestingFeature>, instance: TTestingFeature}>>
      */
-    protected static $cachedTestCaseMethodAttributes = [];
+    protected static array $cachedTestCaseMethodAttributes = [];
 
     /**
      * Determine if the trait is used within testing.
+     *
+     * @api
      *
      * @return bool
      */
@@ -66,21 +65,29 @@ trait InteractsWithPHPUnit
     /**
      * Resolve PHPUnit method annotations.
      *
+     * @internal
+     *
      * @phpunit-overrides
      *
      * @return \Illuminate\Support\Collection<string, mixed>
+     *
+     * @deprecated
+     *
+     * @codeCoverageIgnore
      */
     protected function resolvePhpUnitAnnotations(): Collection
     {
         $instance = new ReflectionClass($this);
 
-        if (! $this instanceof PHPUnitTestCase || $instance->isAnonymous()) {
+        if (
+            ! $this instanceof PHPUnitTestCase
+            || $instance->isAnonymous()
+            || ! class_exists(PHPUnitRegistry::class)
+        ) {
             return new Collection;
         }
 
-        [$registry, $methodName] = phpunit_version_compare('10', '>=')
-            ? [PHPUnit10Registry::getInstance(), $this->name()] // @phpstan-ignore-line
-            : [PHPUnit9Registry::getInstance(), $this->getName(false)]; // @phpstan-ignore-line
+        [$registry, $methodName] = [PHPUnitRegistry::getInstance(), $this->name()];
 
         /** @var array<string, mixed> $annotations */
         $annotations = rescue(
@@ -94,6 +101,8 @@ trait InteractsWithPHPUnit
 
     /**
      * Resolve PHPUnit method attributes.
+     *
+     * @internal
      *
      * @phpunit-overrides
      *
@@ -110,15 +119,15 @@ trait InteractsWithPHPUnit
         }
 
         $className = $instance->getName();
-        $methodName = phpunit_version_compare('10', '>=')
-            ? $this->name() // @phpstan-ignore-line
-            : $this->getName(false); // @phpstan-ignore-line
+        $methodName = $this->name();
 
         return static::resolvePhpUnitAttributesForMethod($className, $methodName);
     }
 
     /**
      * Resolve PHPUnit method attributes for specific method.
+     *
+     * @internal
      *
      * @phpunit-overrides
      *
@@ -162,6 +171,8 @@ trait InteractsWithPHPUnit
     /**
      * Define the setUp environment using callback.
      *
+     * @internal
+     *
      * @param  \Closure(\Closure):void  $setUp
      * @return void
      *
@@ -174,6 +185,8 @@ trait InteractsWithPHPUnit
 
     /**
      * Define the tearDown environment using callback.
+     *
+     * @internal
      *
      * @param  \Closure(\Closure):void  $tearDown
      * @return void
@@ -188,6 +201,8 @@ trait InteractsWithPHPUnit
     /**
      * Prepare the testing environment before the running the test case.
      *
+     * @internal
+     *
      * @return void
      *
      * @codeCoverageIgnore
@@ -200,6 +215,8 @@ trait InteractsWithPHPUnit
     /**
      * Clean up the testing environment before the next test case.
      *
+     * @internal
+     *
      * @return void
      *
      * @codeCoverageIgnore
@@ -210,13 +227,13 @@ trait InteractsWithPHPUnit
         static::$cachedTestCaseClassAttributes = [];
         static::$cachedTestCaseMethodAttributes = [];
 
-        $registry = phpunit_version_compare('10', '>=')
-            ? PHPUnit10Registry::getInstance() // @phpstan-ignore-line
-            : PHPUnit9Registry::getInstance(); // @phpstan-ignore-line
+        if (class_exists(PHPUnitRegistry::class)) {
+            $registry = PHPUnitRegistry::getInstance();
 
-        (function () {
-            $this->classDocBlocks = [];
-            $this->methodDocBlocks = [];
-        })->call($registry);
+            (function () {
+                $this->classDocBlocks = [];
+                $this->methodDocBlocks = [];
+            })->call($registry);
+        }
     }
 }

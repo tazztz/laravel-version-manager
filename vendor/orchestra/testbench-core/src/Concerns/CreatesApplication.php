@@ -6,6 +6,8 @@ use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Contracts\Console\Kernel as ConsoleKernelContract;
 use Illuminate\Contracts\Http\Kernel as HttpKernelContract;
 use Illuminate\Foundation\Application;
+use Illuminate\Foundation\Configuration\ApplicationBuilder;
+use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Facade;
@@ -20,26 +22,29 @@ use Orchestra\Testbench\Attributes\WithConfig;
 use Orchestra\Testbench\Attributes\WithEnv;
 use Orchestra\Testbench\Attributes\WithImmutableDates;
 use Orchestra\Testbench\Bootstrap\LoadEnvironmentVariables;
+use Orchestra\Testbench\Bootstrap\RegisterProviders;
 use Orchestra\Testbench\Features\TestingFeature;
 use Orchestra\Testbench\Foundation\PackageManifest;
 use PHPUnit\Framework\TestCase as PHPUnitTestCase;
 
+use function Illuminate\Filesystem\join_paths;
 use function Orchestra\Testbench\after_resolving;
 use function Orchestra\Testbench\default_skeleton_path;
 use function Orchestra\Testbench\refresh_router_lookups;
 
 /**
- * @api
- *
  * @property bool|null $enablesPackageDiscoveries
  * @property bool|null $loadEnvironmentVariables
  */
 trait CreatesApplication
 {
     use InteractsWithWorkbench;
+    use WithLaravelBootstrapFile;
 
     /**
      * Get Application's base path.
+     *
+     * @api
      *
      * @return string
      */
@@ -51,6 +56,8 @@ trait CreatesApplication
     /**
      * Ignore package discovery from.
      *
+     * @api
+     *
      * @return array<int, string>
      */
     public function ignorePackageDiscoveriesFrom()
@@ -60,6 +67,8 @@ trait CreatesApplication
 
     /**
      * Get application timezone.
+     *
+     * @api
      *
      * @param  \Illuminate\Foundation\Application  $app
      * @return string|null
@@ -71,6 +80,8 @@ trait CreatesApplication
 
     /**
      * Override application bindings.
+     *
+     * @api
      *
      * @param  \Illuminate\Foundation\Application  $app
      * @return array<string|class-string, string|class-string>
@@ -98,6 +109,8 @@ trait CreatesApplication
     /**
      * Get application aliases.
      *
+     * @api
+     *
      * @param  \Illuminate\Foundation\Application  $app
      * @return array<string, class-string>
      */
@@ -108,6 +121,8 @@ trait CreatesApplication
 
     /**
      * Override application aliases.
+     *
+     * @api
      *
      * @param  \Illuminate\Foundation\Application  $app
      * @return array<string, class-string>
@@ -141,6 +156,8 @@ trait CreatesApplication
     /**
      * Get package aliases.
      *
+     * @api
+     *
      * @param  \Illuminate\Foundation\Application  $app
      * @return array<string, class-string>
      */
@@ -151,6 +168,8 @@ trait CreatesApplication
 
     /**
      * Get package bootstrapper.
+     *
+     * @api
      *
      * @param  \Illuminate\Foundation\Application  $app
      * @return array<int, class-string>
@@ -163,6 +182,8 @@ trait CreatesApplication
     /**
      * Get application providers.
      *
+     * @api
+     *
      * @param  \Illuminate\Foundation\Application  $app
      * @return array<int, class-string>
      */
@@ -173,6 +194,8 @@ trait CreatesApplication
 
     /**
      * Override application aliases.
+     *
+     * @api
      *
      * @param  \Illuminate\Foundation\Application  $app
      * @return array<class-string, class-string>
@@ -193,7 +216,7 @@ trait CreatesApplication
     final protected function resolveApplicationProviders($app): array
     {
         $providers = Collection::make(
-            $this->getApplicationProviders($app)
+            RegisterProviders::mergeAdditionalProvidersForTestbench($this->getApplicationProviders($app))
         )->merge($this->getPackageProviders($app));
 
         if (! empty($overrides = $this->overrideApplicationProviders($app))) {
@@ -206,6 +229,8 @@ trait CreatesApplication
     /**
      * Get package providers.
      *
+     * @api
+     *
      * @param  \Illuminate\Foundation\Application  $app
      * @return array<int, class-string>
      */
@@ -217,6 +242,8 @@ trait CreatesApplication
     /**
      * Get base path.
      *
+     * @internal
+     *
      * @return string
      */
     protected function getBasePath()
@@ -225,9 +252,25 @@ trait CreatesApplication
     }
 
     /**
+     * Get the default application bootstrap file path (if exists).
+     *
+     * @internal
+     *
+     * @param  string  $filename
+     * @return string|false
+     *
+     * @deprecated
+     */
+    #[\Deprecated('Removed unreliable method to determine default skeleton', since: '9.7.0')]
+    protected function getDefaultApplicationBootstrapFile(string $filename): string|false
+    {
+        return realpath(default_skeleton_path(join_paths('bootstrap', $filename)));
+    }
+
+    /**
      * Creates the application.
      *
-     * Needs to be implemented by subclasses.
+     * @internal
      *
      * @return \Illuminate\Foundation\Application
      */
@@ -243,8 +286,10 @@ trait CreatesApplication
         $this->resolveApplicationEnvironmentVariables($app);
         $this->resolveApplicationConfiguration($app);
         $this->resolveApplicationHttpKernel($app);
+        $this->resolveApplicationHttpMiddlewares($app);
         $this->resolveApplicationConsoleKernel($app);
         $this->resolveApplicationBootstrappers($app);
+        $this->refreshApplicationRouteNameLookups($app);
 
         return $app;
     }
@@ -252,20 +297,38 @@ trait CreatesApplication
     /**
      * Create the default application implementation.
      *
+     * @internal
+     *
      * @return \Illuminate\Foundation\Application
      */
     final protected function resolveDefaultApplication()
     {
-        return new Application($this->getBasePath());
+        return (new ApplicationBuilder(new Application($this->getBasePath())))
+            ->withProviders()
+            ->withMiddleware(static function ($middleware) {
+                //
+            })
+            ->withCommands()
+            ->create();
     }
 
     /**
      * Resolve application implementation.
      *
+     * @api
+     *
      * @return \Illuminate\Foundation\Application
      */
     protected function resolveApplication()
     {
+        static::$cacheApplicationBootstrapFile ??= $this->getApplicationBootstrapFile('app.php');
+
+        if (\is_string(static::$cacheApplicationBootstrapFile)) {
+            $APP_BASE_PATH = $this->getBasePath();
+
+            return require static::$cacheApplicationBootstrapFile;
+        }
+
         return $this->resolveDefaultApplication();
     }
 
@@ -289,6 +352,8 @@ trait CreatesApplication
 
     /**
      * Resolve application core environment variables implementation.
+     *
+     * @internal
      *
      * @param  \Illuminate\Foundation\Application  $app
      * @return void
@@ -322,6 +387,8 @@ trait CreatesApplication
     /**
      * Resolve application core configuration implementation.
      *
+     * @internal
+     *
      * @param  \Illuminate\Foundation\Application  $app
      * @return void
      */
@@ -348,6 +415,10 @@ trait CreatesApplication
                 $app->detectEnvironment(static fn () => $config->get('app.env', 'workbench'));
             }
 
+            if (\is_string($bootstrapProviderPath = $this->getApplicationBootstrapFile('providers.php'))) {
+                RegisterProviders::merge([], $bootstrapProviderPath);
+            }
+
             $config->set([
                 'app.aliases' => $this->resolveApplicationAliases($app),
                 'app.providers' => $this->resolveApplicationProviders($app),
@@ -362,6 +433,8 @@ trait CreatesApplication
 
     /**
      * Resolve application core implementation.
+     *
+     * @internal
      *
      * @param  \Illuminate\Foundation\Application  $app
      * @return void
@@ -379,6 +452,8 @@ trait CreatesApplication
     /**
      * Resolve application Console Kernel implementation.
      *
+     * @api
+     *
      * @param  \Illuminate\Foundation\Application  $app
      * @return void
      */
@@ -390,6 +465,8 @@ trait CreatesApplication
     /**
      * Resolve application HTTP Kernel implementation.
      *
+     * @api
+     *
      * @param  \Illuminate\Foundation\Application  $app
      * @return void
      */
@@ -399,7 +476,29 @@ trait CreatesApplication
     }
 
     /**
+     * Resolve application HTTP default middlewares.
+     *
+     * @internal
+     *
+     * @param  \Illuminate\Foundation\Application  $app
+     * @return void
+     */
+    protected function resolveApplicationHttpMiddlewares($app)
+    {
+        after_resolving($app, HttpKernelContract::class, function ($kernel, $app) {
+            /** @var \Illuminate\Foundation\Http\Kernel $kernel */
+            $middleware = new Middleware;
+
+            $kernel->setGlobalMiddleware($middleware->getGlobalMiddleware());
+            $kernel->setMiddlewareGroups($middleware->getMiddlewareGroups());
+            $kernel->setMiddlewareAliases($middleware->getMiddlewareAliases());
+        });
+    }
+
+    /**
      * Resolve application HTTP exception handler.
+     *
+     * @api
      *
      * @param  \Illuminate\Foundation\Application  $app
      * @return void
@@ -411,6 +510,8 @@ trait CreatesApplication
 
     /**
      * Resolve application bootstrapper.
+     *
+     * @internal
      *
      * @param  \Illuminate\Foundation\Application  $app
      * @return void
@@ -425,7 +526,7 @@ trait CreatesApplication
 
         $app->make('Illuminate\Foundation\Bootstrap\RegisterFacades')->bootstrap($app);
         $app->make('Illuminate\Foundation\Bootstrap\SetRequestForConsole')->bootstrap($app);
-        $app->make('Illuminate\Foundation\Bootstrap\RegisterProviders')->bootstrap($app);
+        $app->make(RegisterProviders::class)->bootstrap($app);
 
         if (class_exists('Illuminate\Database\Eloquent\LegacyFactoryServiceProvider')) {
             $app->register('Illuminate\Database\Eloquent\LegacyFactoryServiceProvider');
@@ -467,12 +568,12 @@ trait CreatesApplication
         }
 
         $app->make(ConsoleKernelContract::class)->bootstrap();
-
-        $this->refreshApplicationRouteNameLookups($app);
     }
 
     /**
      * Refresh route name lookup for the application.
+     *
+     * @internal
      *
      * @param  \Illuminate\Foundation\Application  $app
      * @return void
@@ -492,14 +593,18 @@ trait CreatesApplication
     /**
      * Resolve application rate limiting configuration.
      *
+     * @api
+     *
      * @param  \Illuminate\Foundation\Application  $app
      * @return void
      */
     protected function resolveApplicationRateLimiting($app)
     {
-        RateLimiter::for(
-            'api', static fn (Request $request) => Limit::perMinute(60)->by($request->user()?->id ?: $request->ip())
-        );
+        after_resolving($app, 'cache.store', function () {
+            RateLimiter::for(
+                'api', static fn (Request $request) => Limit::perMinute(60)->by($request->user()?->id ?: $request->ip())
+            );
+        });
     }
 
     /**
@@ -518,6 +623,8 @@ trait CreatesApplication
     /**
      * Define environment setup.
      *
+     * @api
+     *
      * @param  \Illuminate\Foundation\Application  $app
      * @return void
      */
@@ -528,6 +635,8 @@ trait CreatesApplication
 
     /**
      * Define environment setup.
+     *
+     * @api
      *
      * @param  \Illuminate\Foundation\Application  $app
      * @return void

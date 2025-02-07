@@ -6,7 +6,12 @@ use Illuminate\Console\View\Components\Factory;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
-class ServeCommandEnded
+/**
+ * @api
+ *
+ * @codeCoverageIgnore
+ */
+readonly class ServeCommandEnded
 {
     /**
      * Construct a new event.

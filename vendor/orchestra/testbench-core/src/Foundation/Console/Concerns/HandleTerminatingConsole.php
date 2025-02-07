@@ -17,8 +17,9 @@ trait HandleTerminatingConsole
      * @param  callable():void  $callback
      * @return void
      *
-     * @deprecated Use `Orchestra\Testbench\Foundation\Console\TerminatingConsole::before()` instead.
+     * @deprecated
      */
+    #[\Deprecated('Use `Orchestra\Testbench\Foundation\Console\TerminatingConsole::before()` instead.', since: '9.7.0')]
     protected function beforeTerminating(callable $callback): void
     {
         TerminatingConsole::before($callback);
@@ -31,6 +32,7 @@ trait HandleTerminatingConsole
      *
      * @deprecated Use `Orchestra\Testbench\Foundation\Console\TerminatingConsole::handle()` instead.
      */
+    #[\Deprecated('Use `Orchestra\Testbench\Foundation\Console\TerminatingConsole::handle()` instead.', since: '9.7.0')]
     protected function handleTerminatingConsole(): void
     {
         TerminatingConsole::handle();

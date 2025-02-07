@@ -2,7 +2,6 @@
     "name": "laravel-version-manager/tazz",
     "description": "It's Laravel Package used for version control.",
     "type": "library",
-    "version": "1.0.0",
     "keywords": [
         "laravel",
         "version",
@@ -56,8 +55,5 @@
         "sort-packages": true
     },
     "minimum-stability": "stable",    
-    "prefer-stable": true,
-    "stability-flags": {
-        "laravel-version-manager/tazz": 20
-    }
+    "prefer-stable": true
 }

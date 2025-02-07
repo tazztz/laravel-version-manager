@@ -19,7 +19,7 @@ class ServeCommand extends Command
 {
     /** {@inheritDoc} */
     #[\Override]
-    protected function execute(InputInterface $input, OutputInterface $output)
+    protected function execute(InputInterface $input, OutputInterface $output): int
     {
         if (
             class_exists(ComposerConfig::class, false)

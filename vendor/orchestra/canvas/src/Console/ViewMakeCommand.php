@@ -2,7 +2,6 @@
 
 namespace Orchestra\Canvas\Console;
 
-use Illuminate\Filesystem\Filesystem;
 use Illuminate\Support\Str;
 use Orchestra\Canvas\Core\Concerns\CodeGenerator;
 use Orchestra\Canvas\Core\Concerns\TestGenerator;
@@ -22,13 +21,14 @@ class ViewMakeCommand extends \Illuminate\Foundation\Console\ViewMakeCommand
     use UsesGeneratorOverrides;
 
     /**
-     * Create a new controller creator command instance.
+     * Configures the current command.
      *
      * @return void
      */
-    public function __construct(Filesystem $files)
+    #[\Override]
+    protected function configure()
     {
-        parent::__construct($files);
+        parent::configure();
 
         $this->addGeneratorPresetOptions();
     }
@@ -115,7 +115,7 @@ class ViewMakeCommand extends \Illuminate\Foundation\Console\ViewMakeCommand
     #[\Override]
     protected function getNameInput()
     {
-        /** @phpstan-ignore argument.type */
+        /** @phpstan-ignore argument.type, return.type */
         return transform($this->argument('name'), function (string $name) {
             return str_replace(['\\', '.'], '/', trim($name));
         });

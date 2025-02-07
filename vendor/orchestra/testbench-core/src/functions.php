@@ -162,20 +162,6 @@ function load_migration_paths(ApplicationContract $app, array|string $paths): vo
 }
 
 /**
- * Get default environment variables.
- *
- * @return array<int, string>
- *
- * @deprecated
- *
- * @codeCoverageIgnore
- */
-function default_environment_variables(): array
-{
-    return [];
-}
-
-/**
  * Get defined environment variables.
  *
  * @api
@@ -386,6 +372,7 @@ function workbench_path(array|string $path = ''): string
  *
  * @deprecated
  */
+#[\Deprecated(message: 'Use `Orchestra\Testbench\default_migration_path()` instead', since: '9.5.1')]
 function laravel_migration_path(?string $type = null): string
 {
     return default_migration_path($type);
@@ -426,10 +413,13 @@ function laravel_vendor_exists(ApplicationContract $app, ?string $workingPath = 
  *
  * @phpstan-return (TOperator is null ? int : bool)
  */
-function laravel_version_compare(string $version, ?string $operator = null)
+function laravel_version_compare(string $version, ?string $operator = null): int|bool
 {
-    /** @phpstan-ignore identical.alwaysFalse */
-    $laravel = Application::VERSION === '10.x-dev' ? '10.0.0' : Application::VERSION;
+    /** @var string $laravel */
+    $laravel = transform(
+        Application::VERSION,
+        fn (string $version) => $version === '11.x-dev' ? '11.0.0' : $version, // @phpstan-ignore identical.alwaysFalse
+    );
 
     if (\is_null($operator)) {
         return version_compare($laravel, $version);
@@ -455,17 +445,27 @@ function laravel_version_compare(string $version, ?string $operator = null)
  *
  * @phpstan-return (TOperator is null ? int : bool)
  */
-function phpunit_version_compare(string $version, ?string $operator = null)
+function phpunit_version_compare(string $version, ?string $operator = null): int|bool
 {
     if (! class_exists(Version::class)) {
         throw new RuntimeException('Unable to verify PHPUnit version');
     }
 
+    /** @var string $phpunit */
+    $phpunit = transform(
+        Version::id(),
+        fn (string $version) => match (true) {
+            str_starts_with($version, '12.0-') => '12.0.0',
+            str_starts_with($version, '11.5-') => '11.5.0',
+            default => $version,
+        }
+    );
+
     if (\is_null($operator)) {
-        return version_compare(Version::id(), $version);
+        return version_compare($phpunit, $version);
     }
 
-    return version_compare(Version::id(), $version, $operator);
+    return version_compare($phpunit, $version, $operator);
 }
 
 /**

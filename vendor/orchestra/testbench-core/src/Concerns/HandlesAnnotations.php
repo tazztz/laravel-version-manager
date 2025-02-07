@@ -8,12 +8,16 @@ use Illuminate\Support\Collection;
 /**
  * @internal
  *
+ * @deprecated
+ *
  * @codeCoverageIgnore
  */
 trait HandlesAnnotations
 {
     /**
      * Parse test method annotations.
+     *
+     * @internal
      *
      * @param  \Illuminate\Foundation\Application  $app
      * @param  string  $name

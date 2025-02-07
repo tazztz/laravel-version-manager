@@ -46,8 +46,6 @@ abstract class TestCase extends PHPUnit\TestCase implements Contracts\TestCase
     #[\Override]
     protected function setUp(): void
     {
-        static::$latestResponse = null;
-
         $this->setUpTheTestEnvironment();
     }
 
@@ -85,7 +83,6 @@ abstract class TestCase extends PHPUnit\TestCase implements Contracts\TestCase
             Testing\DatabaseMigrations::class,
             Testing\DatabaseTransactions::class,
             Testing\WithoutMiddleware::class,
-            Testing\WithoutEvents::class,
             Testing\WithFaker::class,
             Testing\Concerns\InteractsWithAuthentication::class,
             Testing\Concerns\InteractsWithConsole::class,
@@ -98,7 +95,6 @@ abstract class TestCase extends PHPUnit\TestCase implements Contracts\TestCase
             Testing\Concerns\MakesHttpRequests::class,
             Concerns\ApplicationTestingHooks::class,
             Concerns\CreatesApplication::class,
-            Concerns\Database\HandlesConnections::class,
             Concerns\HandlesAnnotations::class,
             Concerns\HandlesDatabases::class,
             Concerns\HandlesRoutes::class,
@@ -108,6 +104,7 @@ abstract class TestCase extends PHPUnit\TestCase implements Contracts\TestCase
             Concerns\InteractsWithWorkbench::class,
             Concerns\Testing::class,
             Concerns\WithFactories::class,
+            Concerns\WithLaravelBootstrapFile::class,
             Concerns\WithWorkbench::class,
         ]);
     }

@@ -16,17 +16,21 @@ trait InteractsWithPublishedFiles
      *
      * @var bool
      */
-    protected $interactsWithPublishedFilesTeardownRegistered = false;
+    protected bool $interactsWithPublishedFilesTeardownRegistered = false;
 
     /**
      * List of existing migration files.
      *
      * @var array<int, string>|null
      */
-    protected $cachedExistingMigrationsFiles;
+    protected ?array $cachedExistingMigrationsFiles;
 
     /**
      * Setup Interacts with Published Files environment.
+     *
+     * @internal
+     *
+     * @return void
      */
     protected function setUpInteractsWithPublishedFiles(): void
     {
@@ -38,6 +42,10 @@ trait InteractsWithPublishedFiles
 
     /**
      * Teardown Interacts with Published Files environment.
+     *
+     * @internal
+     *
+     * @return void
      */
     protected function tearDownInteractsWithPublishedFiles(): void
     {
@@ -67,7 +75,10 @@ trait InteractsWithPublishedFiles
     /**
      * Assert file does contains data.
      *
+     * @api
+     *
      * @param  array<int, string>  $contains
+     * @return void
      */
     protected function assertFileContains(array $contains, string $file, string $message = ''): void
     {
@@ -85,7 +96,10 @@ trait InteractsWithPublishedFiles
     /**
      * Assert file doesn't contains data.
      *
+     * @api
+     *
      * @param  array<int, string>  $contains
+     * @return void
      */
     protected function assertFileDoesNotContains(array $contains, string $file, string $message = ''): void
     {
@@ -103,7 +117,10 @@ trait InteractsWithPublishedFiles
     /**
      * Assert file doesn't contains data.
      *
+     * @api
+     *
      * @param  array<int, string>  $contains
+     * @return void
      */
     protected function assertFileNotContains(array $contains, string $file, string $message = ''): void
     {
@@ -113,7 +130,10 @@ trait InteractsWithPublishedFiles
     /**
      * Assert file does contains data.
      *
+     * @api
+     *
      * @param  array<int, string>  $contains
+     * @return void
      */
     protected function assertMigrationFileContains(array $contains, string $file, string $message = '', ?string $directory = null): void
     {
@@ -131,7 +151,10 @@ trait InteractsWithPublishedFiles
     /**
      * Assert file doesn't contains data.
      *
+     * @api
+     *
      * @param  array<int, string>  $contains
+     * @return void
      */
     protected function assertMigrationFileDoesNotContains(array $contains, string $file, string $message = '', ?string $directory = null): void
     {
@@ -149,7 +172,10 @@ trait InteractsWithPublishedFiles
     /**
      * Assert file doesn't contains data.
      *
+     * @api
+     *
      * @param  array<int, string>  $contains
+     * @return void
      */
     protected function assertMigrationFileNotContains(array $contains, string $file, string $message = '', ?string $directory = null): void
     {
@@ -158,6 +184,11 @@ trait InteractsWithPublishedFiles
 
     /**
      * Assert filename exists.
+     *
+     * @api
+     *
+     * @param  string  $file
+     * @return void
      */
     protected function assertFilenameExists(string $file): void
     {
@@ -168,6 +199,11 @@ trait InteractsWithPublishedFiles
 
     /**
      * Assert filename not exists.
+     *
+     * @api
+     *
+     * @param  string  $file
+     * @return void
      */
     protected function assertFilenameDoesNotExists(string $file): void
     {
@@ -178,6 +214,11 @@ trait InteractsWithPublishedFiles
 
     /**
      * Assert filename not exists.
+     *
+     * @api
+     *
+     * @param  string  $file
+     * @return void
      */
     protected function assertFilenameNotExists(string $file): void
     {
@@ -186,6 +227,12 @@ trait InteractsWithPublishedFiles
 
     /**
      * Assert migration filename exists.
+     *
+     * @api
+     *
+     * @param  string  $file
+     * @param  string|null  $directory
+     * @return void
      */
     protected function assertMigrationFileExists(string $file, ?string $directory = null): void
     {
@@ -196,6 +243,12 @@ trait InteractsWithPublishedFiles
 
     /**
      * Assert migration filename not exists.
+     *
+     * @api
+     *
+     * @param  string  $file
+     * @param  string|null  $directory
+     * @return void
      */
     protected function assertMigrationFileDoesNotExists(string $file, ?string $directory = null): void
     {
@@ -206,6 +259,12 @@ trait InteractsWithPublishedFiles
 
     /**
      * Assert migration filename not exists.
+     *
+     * @api
+     *
+     * @param  string  $file
+     * @param  string|null  $directory
+     * @return void
      */
     protected function assertMigrationFileNotExists(string $file, ?string $directory = null): void
     {
@@ -214,6 +273,10 @@ trait InteractsWithPublishedFiles
 
     /**
      * Removes generated files.
+     *
+     * @internal
+     *
+     * @return void
      */
     protected function cleanUpPublishedFiles(): void
     {
@@ -230,6 +293,12 @@ trait InteractsWithPublishedFiles
 
     /**
      * Removes generated migration files.
+     *
+     * @api
+     *
+     * @param  string  $file
+     * @param  string|null  $directory
+     * @return void
      */
     protected function findFirstPublishedMigrationFile(string $filename, ?string $directory = null): ?string
     {
@@ -242,6 +311,10 @@ trait InteractsWithPublishedFiles
 
     /**
      * Removes generated migration files.
+     *
+     * @internal
+     *
+     * @return void
      */
     protected function cleanUpPublishedMigrationFiles(): void
     {

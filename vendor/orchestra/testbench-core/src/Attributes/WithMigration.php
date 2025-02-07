@@ -17,7 +17,7 @@ final class WithMigration implements InvokableContract
      *
      * @var array<int, string>
      */
-    public array $types = [];
+    public readonly array $types;
 
     /**
      * Construct a new attribute.
@@ -26,7 +26,9 @@ final class WithMigration implements InvokableContract
      */
     public function __construct()
     {
-        $this->types = \func_num_args() > 0 ? \func_get_args() : ['laravel'];
+        $this->types = Collection::make(\func_num_args() > 0 ? \func_get_args() : ['laravel'])
+            ->transform(static fn ($type) => \in_array($type, ['cache', 'queue', 'session']) ? 'laravel' : $type)
+            ->all();
     }
 
     /**
