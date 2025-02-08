@@ -41,15 +41,7 @@
             ],
             "aliases": {
                 "VersionManager": "LaravelVersionManager\\Tazz\\Facades\\VersionManager"
-            },
-            "commands": [
-                "LaravelVersionManager\\Tazz\\Commands\\InstallCommand",
-                "LaravelVersionManager\\Tazz\\Commands\\GetCurrentVersion",
-                "LaravelVersionManager\\Tazz\\Commands\\IncrementVersion"
-            ]
-        },
-        "branch-alias": {
-            "dev-main": "1.0-dev"
+            }
         }
     },
     "scripts": {
