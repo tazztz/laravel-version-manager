@@ -29,7 +29,7 @@ class InstallCommand extends Command
 
         if (!File::exists($versionFile)) {
             $defaultVersion = [
-                'version' => '0.0.0',
+                'version' => '1.0.0',
                 'major' => 0,
                 'minor' => 0,
                 'patch' => 0,
