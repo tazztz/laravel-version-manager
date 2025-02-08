@@ -5,23 +5,50 @@ namespace LaravelVersionManager\Tazz\Commands;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\File;
 
+/**
+ * Class InstallCommand
+ *
+ * @package LaravelVersionManager\Tazz\Commands
+ */
 class InstallCommand extends Command
 {
+    /**
+     * The name and signature of the console command.
+     *
+     * @var string
+     */
     protected $signature = 'version-manager:install';
+
+    /**
+     * The console command description.
+     *
+     * @var string
+     */
     protected $description = 'Install the version manager package';
 
-    public function handle()
+    /**
+     * Execute the console command.
+     *
+     * @return void
+     */
+    public function handle(): void
     {
         $this->info('Installing Version Manager...');
 
         $this->installViewServiceProvider();
         $this->registerServiceProvider();
+        $this->publishConfig();
 
         $this->info('Version Manager installed successfully!');
         $this->info('You can now use {{ $version }} in any blade file or {{ \VersionManager::getVersion() }}');
     }
 
-    protected function installViewServiceProvider()
+    /**
+     * Install the ViewServiceProvider.
+     *
+     * @return void
+     */
+    protected function installViewServiceProvider(): void
     {
         $providerPath = app_path('Providers/ViewServiceProvider.php');
 
@@ -42,7 +69,12 @@ class InstallCommand extends Command
         $this->info('ViewServiceProvider created successfully.');
     }
 
-    protected function registerServiceProvider()
+    /**
+     * Register the service provider in config/app.php.
+     *
+     * @return void
+     */
+    protected function registerServiceProvider(): void
     {
         $configPath = config_path('app.php');
 
@@ -67,5 +99,18 @@ class InstallCommand extends Command
 
         File::put($configPath, $contents);
         $this->info('ViewServiceProvider registered in config/app.php');
+    }
+
+    /**
+     * Publish the package configuration.
+     *
+     * @return void
+     */
+    protected function publishConfig(): void
+    {
+        $this->call('vendor:publish', [
+            '--provider' => 'LaravelVersionManager\\Tazz\\VersionManagerServiceProvider',
+            '--tag' => 'version-config'
+        ]);
     }
 }
