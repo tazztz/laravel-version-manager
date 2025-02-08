@@ -23,7 +23,7 @@ class ViewServiceProvider extends ServiceProvider
     {
         try {
             // Share version with all views using the Facade
-            View::share('version', VersionManager::getVersion());
+            View::share('version', app('version-manager')->getVersion());
         } catch (\Exception $e) {
             // If version file doesn't exist yet, set default version
             View::share('version', '0.0.0');

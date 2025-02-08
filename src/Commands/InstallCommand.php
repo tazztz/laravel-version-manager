@@ -26,7 +26,7 @@ class InstallCommand extends Command
     protected function createVersionFile()
     {
         $versionFile = storage_path('version.json');
-        
+
         if (!File::exists($versionFile)) {
             $defaultVersion = [
                 'version' => '0.0.0',
@@ -52,10 +52,10 @@ class InstallCommand extends Command
         if (!str_contains($content, 'App\Providers\ViewServiceProvider::class')) {
             $pattern = "/(RouteServiceProvider::class,\n\s*)/";
             $replacement = "$1        App\\Providers\\ViewServiceProvider::class,\n        ";
-            
+
             $content = preg_replace($pattern, $replacement, $content);
             File::put($configPath, $content);
-            
+
             $this->info('Registered ViewServiceProvider in config/app.php');
         }
     }
