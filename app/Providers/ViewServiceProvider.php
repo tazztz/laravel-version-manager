@@ -1,4 +1,11 @@
 <?php
+/**
+ * ViewServiceProvider Class
+ * 
+ * This provider shares the version number with all views in the application.
+ * 
+ * @package App\Providers
+ */
 
 namespace App\Providers;
 
@@ -6,10 +13,15 @@ use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\View;
 use LaravelVersionManager\Tazz\Facades\VersionManager;
 
+/**
+ * ViewServiceProvider handles sharing version information with views
+ */
 class ViewServiceProvider extends ServiceProvider
 {
     /**
      * Register services.
+     *
+     * @return void
      */
     public function register(): void
     {
@@ -18,6 +30,10 @@ class ViewServiceProvider extends ServiceProvider
 
     /**
      * Bootstrap services.
+     * 
+     * Shares the version number with all views.
+     *
+     * @return void
      */
     public function boot(): void
     {
