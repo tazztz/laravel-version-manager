@@ -55,13 +55,9 @@ class InstallCommand extends Command
 
         if (!File::exists($versionFile)) {
             $defaultVersion = [
-                'version' => '0.0.0',
                 'major' => 0,
                 'minor' => 0,
                 'patch' => 0,
-                'prerelease' => '',
-                'buildmetadata' => '',
-                'timestamp' => now()->toIso8601String()
             ];
 
             // Create storage directory if it doesn't exist
@@ -70,7 +66,7 @@ class InstallCommand extends Command
             }
 
             File::put($versionFile, json_encode($defaultVersion, JSON_PRETTY_PRINT));
-            $this->info('Created version file at: ' . $versionFile);
+            $this->info('Version file created at: ' . $versionFile);
         } else {
             $this->info('Version file already exists.');
         }
@@ -136,7 +132,7 @@ class InstallCommand extends Command
         }
 
         File::put($configPath, $contents);
-        $this->info('Registered ViewServiceProvider in config/app.php');
+        $this->info('ViewServiceProvider registered in config/app.php');
     }
 
     /**
