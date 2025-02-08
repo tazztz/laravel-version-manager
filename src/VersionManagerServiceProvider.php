@@ -29,6 +29,7 @@ class VersionManagerServiceProvider extends ServiceProvider
 
             $this->commands([
                 Commands\IncrementVersion::class,
+                Commands\GetCurrentVersion::class,
             ]);
         }
     }

@@ -24,7 +24,7 @@ class VersionManagerTest extends TestCase
     {
         $initialVersion = $this->versionManager->getVersion();
         $newVersion = $this->versionManager->increment('patch');
-        
+
         $this->assertNotEquals($initialVersion, $newVersion);
         $this->assertMatchesRegularExpression('/^\d+\.\d+\.\d+$/', $newVersion);
     }
@@ -33,7 +33,7 @@ class VersionManagerTest extends TestCase
     {
         $initialVersion = $this->versionManager->getVersion();
         $newVersion = $this->versionManager->increment('minor');
-        
+
         $this->assertNotEquals($initialVersion, $newVersion);
         $this->assertMatchesRegularExpression('/^\d+\.\d+\.0$/', $newVersion);
     }
@@ -42,8 +42,8 @@ class VersionManagerTest extends TestCase
     {
         $initialVersion = $this->versionManager->getVersion();
         $newVersion = $this->versionManager->increment('major');
-        
+
         $this->assertNotEquals($initialVersion, $newVersion);
         $this->assertMatchesRegularExpression('/^\d+\.0\.0$/', $newVersion);
     }
-} 
+}
