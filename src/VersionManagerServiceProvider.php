@@ -12,6 +12,17 @@ use LaravelVersionManager\Tazz\Commands\IncrementVersion;
 class VersionManagerServiceProvider extends ServiceProvider
 {
     /**
+     * All commands to be registered.
+     *
+     * @var array<class-string>
+     */
+    protected array $commandList = [
+        InstallCommand::class,
+        GetCurrentVersion::class,
+        IncrementVersion::class,
+    ];
+
+    /**
      * Register any application services.
      */
     public function register(): void
@@ -20,13 +31,6 @@ class VersionManagerServiceProvider extends ServiceProvider
         $this->app->singleton('version-manager', function ($app) {
             return new VersionManager($app);
         });
-
-        // Register commands
-        if ($this->app->runningInConsole()) {
-            $this->app->singleton(InstallCommand::class);
-            $this->app->singleton(GetCurrentVersion::class);
-            $this->app->singleton(IncrementVersion::class);
-        }
 
         // Merge config
         $this->mergeConfigFrom(
@@ -41,16 +45,8 @@ class VersionManagerServiceProvider extends ServiceProvider
     public function boot(): void
     {
         if ($this->app->runningInConsole()) {
-            // Register the commands
-            $this->app->make(InstallCommand::class);
-            $this->app->make(GetCurrentVersion::class);
-            $this->app->make(IncrementVersion::class);
-
-            $this->commands([
-                InstallCommand::class,
-                GetCurrentVersion::class,
-                IncrementVersion::class,
-            ]);
+            // Register commands
+            $this->commands($this->commandList);
 
             // Publish config
             $this->publishes([
