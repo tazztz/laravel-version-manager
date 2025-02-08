@@ -61,7 +61,7 @@ class VersionManager
     public function __construct(Application $app)
     {
         $this->app = $app;
-        $this->filePath = config('version.file_path');
+        $this->filePath = config('version.file_path', storage_path('version.json'));
         $this->loadVersion();
     }
 

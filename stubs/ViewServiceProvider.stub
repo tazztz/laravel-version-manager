@@ -22,8 +22,11 @@ class ViewServiceProvider extends ServiceProvider
     public function boot(): void
     {
         // Share version with all views
+        View::share('version', app('version-manager')->getVersion());
+
+        // Alternative way using composer for all views
         View::composer('*', function ($view) {
-            $view->with('version', VersionManager::getVersion());
+            $view->with('version', app('version-manager')->getVersion());
         });
     }
 }
