@@ -35,12 +35,41 @@ class InstallCommand extends Command
     {
         $this->info('Installing Version Manager...');
 
+        $this->createVersionFile();
         $this->installViewServiceProvider();
         $this->registerServiceProvider();
         $this->publishConfig();
 
         $this->info('Version Manager installed successfully!');
         $this->info('You can now use {{ $version }} in any blade file or {{ \VersionManager::getVersion() }}');
+    }
+
+    /**
+     * Create the version file.
+     *
+     * @return void
+     */
+    protected function createVersionFile(): void
+    {
+        $versionFile = storage_path('version.json');
+
+        if (!File::exists($versionFile)) {
+            $defaultVersion = [
+                'major' => 0,
+                'minor' => 0,
+                'patch' => 0,
+            ];
+
+            // Create storage directory if it doesn't exist
+            if (!File::exists(storage_path())) {
+                File::makeDirectory(storage_path());
+            }
+
+            File::put($versionFile, json_encode($defaultVersion, JSON_PRETTY_PRINT));
+            $this->info('Version file created at: ' . $versionFile);
+        } else {
+            $this->info('Version file already exists.');
+        }
     }
 
     /**
@@ -91,11 +120,16 @@ class InstallCommand extends Command
             return;
         }
 
-        // Find the providers array
-        $pattern = "/('providers'\s*=>\s*\[\s*)([\s\S]*?)(^\s*\])/m";
-        $replacement = "$1$2        App\\Providers\\ViewServiceProvider::class,\n$3";
+        // Find the providers array closing bracket
+        $pattern = "/(App\\\\Providers\\\\RouteServiceProvider::class,\n\s*)(])(\s*)/s";
+        $replacement = "$1        App\\Providers\\ViewServiceProvider::class,\n    $2$3";
 
         $contents = preg_replace($pattern, $replacement, $contents);
+
+        if ($contents === null) {
+            $this->error('Failed to update config/app.php. Please add ViewServiceProvider manually.');
+            return;
+        }
 
         File::put($configPath, $contents);
         $this->info('ViewServiceProvider registered in config/app.php');
