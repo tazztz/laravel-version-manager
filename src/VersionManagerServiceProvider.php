@@ -16,8 +16,19 @@ class VersionManagerServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        $this->app->singleton(VersionManager::class);
+        // Register the main class
+        $this->app->singleton('version-manager', function ($app) {
+            return new VersionManager($app);
+        });
 
+        // Register commands
+        if ($this->app->runningInConsole()) {
+            $this->app->singleton(InstallCommand::class);
+            $this->app->singleton(GetCurrentVersion::class);
+            $this->app->singleton(IncrementVersion::class);
+        }
+
+        // Merge config
         $this->mergeConfigFrom(
             __DIR__ . '/../config/version.php',
             'version'
@@ -30,12 +41,18 @@ class VersionManagerServiceProvider extends ServiceProvider
     public function boot(): void
     {
         if ($this->app->runningInConsole()) {
+            // Register the commands
+            $this->app->make(InstallCommand::class);
+            $this->app->make(GetCurrentVersion::class);
+            $this->app->make(IncrementVersion::class);
+
             $this->commands([
                 InstallCommand::class,
                 GetCurrentVersion::class,
                 IncrementVersion::class,
             ]);
 
+            // Publish config
             $this->publishes([
                 __DIR__ . '/../config/version.php' => config_path('version.php'),
                 __DIR__ . '/../stubs/ViewServiceProvider.stub' => base_path('stubs/vendor/laravel-version-manager/ViewServiceProvider.stub'),
