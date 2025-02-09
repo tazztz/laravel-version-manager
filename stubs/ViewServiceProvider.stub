@@ -1,15 +1,31 @@
 <?php
 
+/**
+ * View Service Provider
+ *
+ * This provider handles view-specific services and sharing of common data
+ * across views, such as the application version.
+ *
+ * @package App\Providers
+ */
+
 namespace App\Providers;
 
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\View;
 use LaravelVersionManager\Tazz\Facades\VersionManager;
 
+/**
+ * Class ViewServiceProvider
+ *
+ * @package App\Providers
+ */
 class ViewServiceProvider extends ServiceProvider
 {
     /**
      * Register services.
+     *
+     * @return void
      */
     public function register(): void
     {
@@ -18,12 +34,14 @@ class ViewServiceProvider extends ServiceProvider
 
     /**
      * Bootstrap services.
+     *
+     * @return void
      */
     public function boot(): void
     {
         try {
-            // Share version with all views using the Facade
-            View::share('version', app('version-manager')->getVersion());
+            // Share version with all views using the VersionManager Facade
+            View::share('version', VersionManager::getVersion());
         } catch (\Exception $e) {
             // If version file doesn't exist yet, set default version
             View::share('version', '1.0.0');
