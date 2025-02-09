@@ -21,12 +21,12 @@
     ],
     "require": {
         "php": "^8.1",
-        "illuminate/support": "^9.0|^10.0",
-        "illuminate/console": "^9.0|^10.0"
+        "illuminate/support": "^9.52.16",
+        "illuminate/console": "^9.52.16"
     },
     "require-dev": {
-        "phpunit/phpunit": "^9.0|^10.0",
-        "orchestra/testbench": "^7.0|^8.0"
+        "phpunit/phpunit": "^9.0",
+        "orchestra/testbench": "^7.0"
     },
     "autoload-dev": {
         "psr-4": {
