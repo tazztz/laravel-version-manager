@@ -7,7 +7,7 @@ A Laravel package for managing version control in your applications.
 You can install the package via composer:
 
 ```bash
-composer require laravel-version-manager/tazz
+composer require laravel-version-manager/tazz:dev-main
 ```
 
 After installing, run the installation command:
@@ -56,7 +56,7 @@ You can display the version number in your blade templates in two ways:
 
 ```blade
 <!-- Method 1: Using the injected variable (Requires ViewServiceProvider) -->
-<p>Current Version: {{ $version }}</p>
+<p>Current Version: {{ $version ?? '1.0.0' }}</p>
 
 <!-- Method 2: Using the Facade (Always available) -->
 <p>Current Version: {{ \VersionManager::getVersion() }}</p>
